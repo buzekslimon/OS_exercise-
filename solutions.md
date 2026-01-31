@@ -285,10 +285,18 @@ The remaining bits in each 32-bit PTE (14 bits) can be used for:
 
 ### Exercise 12
 
-| Part | Question | Answer |
-|------|----------|--------|
-| a | Offset bits in logical address | **12 bits** |
-| b | Bits for page numbers | **20 bits** |
-| d | Number of entries per page table | **1024 entries** |
-| e | First-level index bits | **10 bits** |
-| e | Second-level index bits | **10 bits** |
+| Part | Question | Answer | Verification |
+|------|----------|--------|--------------|
+| a | Offset bits in logical address | **12 bits** | log₂(4096) = 12 ✓ |
+| b | Bits for page numbers | **20 bits** | 32 - 12 = 20 ✓ |
+| d | Number of entries per page table | **1024 entries** | 4096 ÷ 4 = 1024 ✓ |
+| e | First-level index bits | **10 bits** | log₂(1024) = 10 ✓ |
+| e | Second-level index bits | **10 bits** | log₂(1024) = 10 ✓ |
+
+### Final Cross-Check
+
+```
+First-level index (10) + Second-level index (10) + Offset (12) = 32 bits ✓
+```
+
+All answers verified correct.
