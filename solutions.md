@@ -18,61 +18,70 @@ For each of the resource allocation graphs shown, determine whether a deadlock c
 
 **Processes:** T1, T2, T3, T4
 
-### Current Allocations (Resource → Process)
-| Resource | Allocated To |
-|----------|--------------|
-| R1 (1 instance) | T1 |
-| R2 (2 instances) | T3, T4 (one each) |
-| R3 (2 instances) | None |
+### Arrow Analysis from Image (VERIFIED)
 
-### Current Requests (Process → Resource)
-| Process | Requesting |
-|---------|------------|
-| T1 | R2 |
-| T2 | R2, R3 |
-| T3 | R1 |
-| T4 | R3 |
+**Allocation Arrows (Resource → Process):**
+| Arrow | Meaning |
+|-------|---------|
+| R1 → T1 | R1's only instance allocated to T1 |
+| R2 → T3 | One instance of R2 allocated to T3 |
+| R2 → T4 | One instance of R2 allocated to T4 |
+| **R3 → (none)** | **NO allocation arrows from R3!** |
+
+**Request Arrows (Process → Resource):**
+| Arrow | Meaning |
+|-------|---------|
+| T1 → R2 | T1 requests R2 |
+| T2 → R2 | T2 requests R2 |
+| T2 → R3 | T2 requests R3 |
+| T3 → R1 | T3 requests R1 |
+| T4 → R3 | T4 requests R3 |
+
+### Resource Availability (CRITICAL)
+| Resource | Total | Allocated | **Available** |
+|----------|-------|-----------|---------------|
+| R1 | 1 | 1 (to T1) | **0** |
+| R2 | 2 | 2 (to T3, T4) | **0** |
+| R3 | 2 | **0** | **2** ← KEY! |
 
 ### State Summary
 ```
-T1: holds R1, wants R2
-T2: holds nothing, wants R2 and R3
-T3: holds R2 (1 instance), wants R1
-T4: holds R2 (1 instance), wants R3
+T1: holds R1(1), wants R2      → R2 has 0 available → WAITING
+T2: holds nothing, wants R2,R3 → R2 has 0 available → WAITING  
+T3: holds R2(1), wants R1      → R1 has 0 available → WAITING
+T4: holds R2(1), wants R3      → R3 has 2 available → CAN PROCEED!
 ```
 
 ### Cycle Detection
 There is a cycle: **T1 → R2 → T3 → R1 → T1**
 
-However, this does NOT guarantee deadlock with multi-instance resources.
+However, for multi-instance resources, a cycle does NOT guarantee deadlock. We must use the graph reduction algorithm.
 
 ### Deadlock Analysis (Graph Reduction Method)
 
-Let's check if any process can complete:
+**Step 1:** Find a process that can complete
+- T4 holds R2(1), wants R3
+- R3 has **2 available instances** (no allocations from R3!)
+- **T4 CAN COMPLETE** ✓
 
-1. **T4**: Holds R2, wants R3
-   - R3 has 2 instances, 0 allocated → **R3 is available!**
-   - T4 can acquire R3, complete, and release R2 ✓
+**Step 2:** T4 completes and releases R2
+- R2: now has 1 available instance
 
-2. After T4 completes: R2 now has 1 free instance
+**Step 3:** Check remaining processes
+- T1 holds R1, wants R2 → R2 now available → **T1 CAN COMPLETE** ✓
+- T1 releases R1 and R2
 
-3. **T1**: Holds R1, wants R2
-   - R2 now has 1 available instance
-   - T1 can acquire R2, complete, and release R1, R2 ✓
+**Step 4:** Continue reduction
+- T3 holds R2(1), wants R1 → R1 now available → **T3 CAN COMPLETE** ✓
+- T2 wants R2, R3 → both available → **T2 CAN COMPLETE** ✓
 
-4. After T1 completes: R1 is free, R2 has 2 free instances
-
-5. **T3**: Holds R2, wants R1
-   - R1 is now available
-   - T3 can acquire R1, complete, and release R1, R2 ✓
-
-6. **T2**: Wants R2 and R3
-   - Both are now available
-   - T2 can complete ✓
+**All processes can complete!**
 
 ### Result for Graph 1: ✅ NO DEADLOCK
 
-**Reason:** Although a cycle exists in the graph, T4 can proceed (R3 is available), which breaks the potential deadlock. The graph is reducible.
+**Reason:** Although a cycle exists (T1→R2→T3→R1→T1), **R3 has 2 available instances** (no allocation arrows from R3 in the graph). This allows T4 to proceed, which breaks the potential deadlock. The graph is fully reducible.
+
+**Key Insight:** The critical observation is that R3 has NO allocation arrows in the image - only request arrows (from T2 and T4). This means R3's instances are all available.
 
 ---
 
@@ -178,10 +187,29 @@ Use the Banker's algorithm to check if granting a request leads to a safe state 
 
 ## Summary Table for Exercise 11
 
-| Graph | Deadlock? | Reason |
-|-------|-----------|--------|
-| **Graph 1** | **NO** | T4 can acquire R3 (available), complete, and release R2, allowing other processes to proceed |
-| **Graph 2** | **YES** | All resources fully allocated; no process can proceed; circular wait exists |
+| Graph | Deadlock? | Key Reason |
+|-------|-----------|------------|
+| **Graph 1** | **NO** | R3 has 2 available instances (no allocations) → T4 can proceed → breaks the cycle |
+| **Graph 2** | **YES** | All resources (R1 and R2) fully allocated → no process can proceed → circular wait |
+
+### Verification of Graph 1 Answer
+
+**Why some analyses incorrectly say "DEADLOCK" for Graph 1:**
+- They incorrectly assume R3 is fully allocated
+- Looking at the actual image: R3 has NO allocation arrows (only request arrows from T2 and T4)
+- R3 has 2 instances, 0 allocated → 2 available
+
+**Proof that NO DEADLOCK exists:**
+```
+Initial: R1=0 avail, R2=0 avail, R3=2 avail
+T4 gets R3 → completes → releases R2
+After:   R1=0 avail, R2=1 avail, R3=2 avail
+T1 gets R2 → completes → releases R1, R2  
+After:   R1=1 avail, R2=2 avail, R3=2 avail
+T3 gets R1 → completes
+T2 gets R2, R3 → completes
+ALL PROCESSES COMPLETE ✓
+```
 
 ---
 
@@ -413,6 +441,33 @@ The remaining bits in each 32-bit PTE (14 bits) can be used for:
 - Dirty bit
 - Referenced bit
 - Other control flags
+
+### Memory Requirements Analysis
+
+**First-Level Page Table (Page Directory):**
+```
+Size = 1 page = 4 KB
+Entries = 1024 (pointing to second-level tables)
+```
+
+**Second-Level Page Tables:**
+```
+Maximum tables = 1024 (one for each first-level entry)
+Each table = 4 KB
+Maximum total = 1024 × 4 KB = 4 MB
+```
+
+**Total Maximum Page Table Memory:**
+```
+Total = First-level + All second-level tables
+      = 4 KB + 4 MB
+      ≈ 4 MB
+```
+
+**Advantage of Two-Level Paging:**
+- Not all second-level tables need to be in memory
+- Sparse address spaces save significant memory
+- Only allocate page tables for actually used portions of address space
 
 ---
 
