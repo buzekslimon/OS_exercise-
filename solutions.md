@@ -208,13 +208,18 @@ Remaining bits in PTE (for flags) = 32 - 18 = 14 bits
 
 ### Exercise 12
 
-| Question | Answer |
-|----------|--------|
-| (a) Offset bits | **12 bits** |
-| (b) Page number bits | **20 bits** |
-| (d) Entries per page table | **1024 entries (2^10)** |
-| (e) First-level index bits | **10 bits** |
-| (e) Second-level index bits | **10 bits** |
+| Question | Answer | Calculation |
+|----------|--------|-------------|
+| (a) Offset bits | **12 bits** | log₂(4096) = 12 |
+| (b) Page number bits | **20 bits** | 32 - 12 = 20 |
+| (d) Entries per page table | **1024 entries (2^10)** | 4096 / 4 = 1024 |
+| (e) First-level index bits | **10 bits** | log₂(1024) = 10 |
+| (e) Second-level index bits | **10 bits** | log₂(1024) = 10 |
+
+### Verification Check
+```
+P1 bits + P2 bits + Offset bits = 10 + 10 + 12 = 32 bits ✓
+```
 
 ### Visual Summary of Address Format
 
@@ -222,7 +227,13 @@ Remaining bits in PTE (for flags) = 32 - 18 = 14 bits
 32-bit Virtual Address:
 ┌──────────┬──────────┬──────────────┐
 │ P1 (10)  │ P2 (10)  │ Offset (12)  │
+│ bits     │ bits     │ bits         │
+│ 31...22  │ 21...12  │ 11...0       │
 └──────────┴──────────┴──────────────┘
+    │           │            │
+    │           │            └──→ Position within page (0-4095)
+    │           └─────────────────→ Index into inner page table (0-1023)
+    └─────────────────────────────→ Index into outer page table (0-1023)
 
 Address Translation:
 Page Directory [P1] → Page Table [P2] → Frame Number + Offset → Physical Address
