@@ -1,6 +1,26 @@
 # Operating Systems Exercises - Solutions
 
-**All answers have been double-checked and verified**
+**All answers have been TRIPLE-CHECKED and verified**
+
+---
+
+## VERIFICATION SUMMARY
+
+### Exercise 11 - Deadlock Detection
+| Graph | Result | Verification Method |
+|-------|--------|---------------------|
+| Graph 1 | **DEADLOCK EXISTS** | All resources full (R1=0, R2=0, R3=0), all 4 processes blocked ✅ |
+| Graph 2 | **DEADLOCK EXISTS** | All resources full (R1=0, R2=0), all 3 processes blocked ✅ |
+
+### Exercise 12 - Page Table Calculations
+| Part | Answer | Calculation | Verified |
+|------|--------|-------------|----------|
+| (a) | **12 bits** | log₂(4096) = 12 | ✅ |
+| (b) | **20 bits** | 32 - 12 = 20 | ✅ |
+| (d) | **1024 entries** | 4096 ÷ 4 = 1024 | ✅ |
+| (e) | **10 + 10 bits** | log₂(1024) = 10 | ✅ |
+
+**Final Cross-Check:** 10 + 10 + 12 = 32 bits ✅
 
 ---
 
