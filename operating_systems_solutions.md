@@ -9,76 +9,137 @@
 ### Problem Statement (Translated from Persian)
 For each of the given resource allocation graphs, determine whether a deadlock can exist or not. If a deadlock exists, explain how it can be prevented.
 
-### Solution Approach
+---
 
-#### Understanding Resource Allocation Graphs (RAG)
+### Graph 1 Analysis (Left Graph) ✅
 
-A Resource Allocation Graph consists of:
-- **Process nodes** (circles): Represent processes P1, P2, P3, etc.
-- **Resource nodes** (rectangles/squares): Represent resources R1, R2, R3, etc.
-- **Request edges** (Process → Resource): A process is requesting a resource
-- **Assignment edges** (Resource → Process): A resource is allocated to a process
+**Resources and Instances:**
+- R1: 1 instance (●)
+- R2: 2 instances (●●)
+- R3: 2 instances (●●)
 
-#### Deadlock Detection Rules
+**Processes:** T1, T2, T3, T4
 
-**Rule 1: For Single-Instance Resources**
-- A deadlock exists if and only if there is a **cycle** in the resource allocation graph.
+**Allocations (Resource → Process):**
+- R1 → T2 (T2 holds the only instance of R1)
+- R2 → T3 (T3 holds 1 instance of R2)
+- R2 → T4 (T4 holds 1 instance of R2)
+- R3 → T1 (T1 holds 1 instance of R3)
+- R3 → T2 (T2 holds 1 instance of R3)
 
-**Rule 2: For Multiple-Instance Resources**
-- A cycle is a **necessary but not sufficient** condition for deadlock.
-- Must use the **cycle detection algorithm** or **banker's algorithm** to verify.
+**Requests (Process → Resource):**
+- T1 → R1 (T1 requests R1)
+- T2 → R2 (T2 requests R2)
+- T3 → R3 (T3 requests R3)
+- T4 → R3 (T4 requests R3)
 
-#### Deadlock Detection Algorithm
+**Current State Summary:**
+| Process | Holds | Requests |
+|---------|-------|----------|
+| T1 | 1× R3 | R1 |
+| T2 | 1× R1, 1× R3 | R2 |
+| T3 | 1× R2 | R3 |
+| T4 | 1× R2 | R3 |
 
-1. Find all processes that have all their resource requests satisfied (can complete)
-2. Release resources held by these processes
-3. Repeat until no more processes can complete
-4. If any processes remain, they are in deadlock
+**Deadlock Detection:**
 
-### Analysis of Common Graph Patterns
+Step 1: Check available resources
+- R1: 1 total - 1 allocated = 0 available
+- R2: 2 total - 2 allocated = 0 available
+- R3: 2 total - 2 allocated = 0 available
 
-#### Pattern 1: Simple Cycle with Single Instances
+Step 2: Can any process complete?
+- T1 needs R1 → 0 available → **BLOCKED**
+- T2 needs R2 → 0 available → **BLOCKED**
+- T3 needs R3 → 0 available → **BLOCKED**
+- T4 needs R3 → 0 available → **BLOCKED**
+
+Step 3: Identify cycles
 ```
-P1 → R1 → P2 → R2 → P1
+Cycle 1: T1 → R1 → T2 → R2 → T3 → R3 → T1
+Cycle 2: T1 → R1 → T2 → R2 → T4 → R3 → T1
 ```
-- **Deadlock EXISTS**: P1 holds R2 and waits for R1; P2 holds R1 and waits for R2
-- **Prevention**: 
-  - Resource ordering (always request R1 before R2)
-  - Use preemption (forcibly take resources)
-  - Use timeout mechanisms
 
-#### Pattern 2: Cycle with Multiple Instances
+**✅ RESULT: DEADLOCK EXISTS**
+
+All processes are blocked in a circular wait. No process can proceed.
+
+**Prevention Methods for Graph 1:**
+1. **Resource Ordering:** Require processes to request resources in order (R1 → R2 → R3)
+2. **Hold and Wait Prevention:** T2 should request R1 and R2 together at the start
+3. **Preemption:** Allow the OS to forcibly take R3 from T1 or T2
+4. **Banker's Algorithm:** Use safe state checking before granting resources
+
+---
+
+### Graph 2 Analysis (Right Graph) ✅
+
+**Resources and Instances:**
+- R1: 2 instances (●●)
+- R2: 2 instances (●●)
+
+**Processes:** T1, T2, T3
+
+**Allocations (Resource → Process):**
+- R1 → T1 (T1 holds 1 instance of R1)
+- R1 → T2 (T2 holds 1 instance of R1)
+- R2 → T2 (T2 holds 1 instance of R2)
+- R2 → T3 (T3 holds 1 instance of R2)
+
+**Requests (Process → Resource):**
+- T1 → R2 (T1 requests R2)
+- T2 → R2 (T2 requests R2 - needs another instance)
+- T3 → R1 (T3 requests R1)
+
+**Current State Summary:**
+| Process | Holds | Requests |
+|---------|-------|----------|
+| T1 | 1× R1 | R2 |
+| T2 | 1× R1, 1× R2 | R2 |
+| T3 | 1× R2 | R1 |
+
+**Deadlock Detection:**
+
+Step 1: Check available resources
+- R1: 2 total - 2 allocated = 0 available
+- R2: 2 total - 2 allocated = 0 available
+
+Step 2: Can any process complete?
+- T1 needs R2 → 0 available → **BLOCKED**
+- T2 needs R2 → 0 available → **BLOCKED**
+- T3 needs R1 → 0 available → **BLOCKED**
+
+Step 3: Identify cycles
 ```
-R1 has 2 instances
-P1 holds 1 instance of R1, requests R2
-P2 holds R2, requests R1
-P3 holds 1 instance of R1
+Cycle: T1 → R2 → T3 → R1 → T1
+Also:  T2 → R2 → T3 → R1 → T2
 ```
-- **Deadlock may NOT exist** if P3 can finish and release R1
-- Must trace through all possibilities
 
-#### Pattern 3: No Cycle Present
-- **No deadlock possible** - safe state guaranteed
+**✅ RESULT: DEADLOCK EXISTS**
 
-### Deadlock Prevention Strategies
+All three processes are blocked. None can release resources because each is waiting for a resource held by another.
+
+**Prevention Methods for Graph 2:**
+1. **Resource Ordering:** Always request R1 before R2
+2. **Hold and Wait Prevention:** Each process should request all needed resources at once
+3. **Limit Resource Holding:** T2 should not hold both R1 and R2 simultaneously while requesting more
+4. **Timeout Mechanism:** Release resources if waiting too long
+
+---
+
+### Summary of Exercise 11
+
+| Graph | Deadlock? | Reason |
+|-------|-----------|--------|
+| **Graph 1** | **YES** | Circular wait: T1→R1→T2→R2→T3→R3→T1 |
+| **Graph 2** | **YES** | Circular wait: T1→R2→T3→R1→T1 |
+
+### General Deadlock Prevention Strategies
 
 1. **Mutual Exclusion Prevention**: Make resources shareable when possible
 2. **Hold and Wait Prevention**: Require processes to request all resources at once
 3. **No Preemption Prevention**: Allow forcible resource removal
-4. **Circular Wait Prevention**: Impose ordering on resource requests
-
-### General Solution Template for Graph Analysis
-
-For each graph in the exercise:
-
-1. **Identify all cycles** by tracing edges
-2. **Count resource instances** for each resource type
-3. **Apply detection algorithm**:
-   - If single instances and cycle exists → **DEADLOCK**
-   - If multiple instances, check if cycle can be broken by completing other processes
-4. **Propose prevention method**:
-   - If deadlock exists: Apply resource ordering or request-all-at-once policy
-   - If no deadlock: System is in safe state
+4. **Circular Wait Prevention**: Impose ordering on resource requests (most practical)
 
 ---
 
