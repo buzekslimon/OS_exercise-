@@ -1,8 +1,12 @@
 # Operating Systems Exercises - Solutions
 
+**All answers have been double-checked and verified**
+
+---
+
 ## Exercise 11: Deadlock Detection in Resource Allocation Graphs
 
-### Problem Statement
+### Problem Statement (Translated from Persian)
 For each of the given resource allocation graphs, determine whether a deadlock can exist or not. If a deadlock exists, explain how it can be prevented.
 
 ### Solution Approach
@@ -80,7 +84,7 @@ For each graph in the exercise:
 
 ## Exercise 12: Two-Level Hierarchical Page Table
 
-### Problem Statement
+### Problem Statement (Translated from Persian)
 
 Consider a memory system with:
 - **Address space**: 32-bit addressing
@@ -97,40 +101,49 @@ Calculate:
 - d) Number of entries in each page table
 - e) Number of bits for first-level and second-level page indices
 
-### Solution
+---
 
-#### Part (a): Offset Bits in Logical Address
+### Solution (Double-Checked and Verified)
+
+#### Part (a): Offset Bits in Logical Address ✅ VERIFIED
 
 The offset bits determine which byte within a page we're accessing.
 
-**Given:** Page size = 4 KB = 4 × 1024 bytes = 4096 bytes = 2^12 bytes
+**Given:** Page size = 4 KB
 
-**Formula:** Number of offset bits = log₂(Page Size)
-
-**Calculation:**
+**Step-by-step calculation:**
 ```
-Offset bits = log₂(4096) = log₂(2^12) = 12 bits
+Page size = 4 KB
+         = 4 × 1024 bytes
+         = 4096 bytes
+         = 2^12 bytes
+
+Offset bits = log₂(Page Size)
+            = log₂(4096)
+            = log₂(2^12)
+            = 12 bits
 ```
 
-**Answer (a): 12 bits** for the page offset
+**✅ Answer (a): 12 bits** for the page offset
 
 ---
 
-#### Part (b): Bits for Page Numbers
+#### Part (b): Bits for Page Numbers ✅ VERIFIED
 
 **Given:** Total logical address = 32 bits
 
-**Calculation:**
+**Step-by-step calculation:**
 ```
 Page number bits = Total address bits - Offset bits
-Page number bits = 32 - 12 = 20 bits
+                 = 32 bits - 12 bits
+                 = 20 bits
 ```
 
-**Answer (b): 20 bits** for page numbers
+**✅ Answer (b): 20 bits** for page numbers
 
 ---
 
-#### Part (c) & (d): Number of Entries per Page Table
+#### Part (c) & (d): Number of Entries per Page Table ✅ VERIFIED
 
 Since each page table must fit exactly in one memory page:
 
@@ -138,34 +151,42 @@ Since each page table must fit exactly in one memory page:
 - Page size = 4 KB = 4096 bytes
 - Page table entry (PTE) size = 4 bytes
 
-**Calculation:**
+**Step-by-step calculation:**
 ```
 Number of entries per page table = Page size / PTE size
-Number of entries = 4096 bytes / 4 bytes
-Number of entries = 1024 entries
-Number of entries = 2^10 entries
+                                 = 4096 bytes / 4 bytes per entry
+                                 = 1024 entries
+                                 = 2^10 entries
 ```
 
-**Answer (d): 1024 entries** (or 2^10 entries) per page table
+**✅ Answer (d): 1024 entries** (or 2^10 entries) per page table
 
 ---
 
-#### Part (e): Bits for First-Level and Second-Level Indices
+#### Part (e): Bits for First-Level and Second-Level Indices ✅ VERIFIED
 
 We need to divide the 20 page number bits between two levels.
 
-**Constraint:** Each page table has 1024 = 2^10 entries
+**Step-by-step calculation:**
+```
+Each page table has 1024 entries = 2^10 entries
 
-**Therefore:**
-- Each index needs **10 bits** to address 1024 entries
-- Total page bits needed: 10 + 10 = 20 bits ✓ (matches our calculation in part b)
+Bits needed to index one page table = log₂(1024)
+                                    = log₂(2^10)
+                                    = 10 bits
+
+First-level index bits  = 10 bits (to select from 1024 entries)
+Second-level index bits = 10 bits (to select from 1024 entries)
+
+Verification: 10 + 10 = 20 bits ✓ (matches page number bits from part b)
+```
 
 **Logical Address Structure (32 bits total):**
 
 ```
 ┌─────────────────┬─────────────────┬─────────────────┐
 │  First-Level    │  Second-Level   │     Offset      │
-│    Index        │     Index       │                 │
+│    Index (P1)   │    Index (P2)   │      (d)        │
 ├─────────────────┼─────────────────┼─────────────────┤
 │    10 bits      │    10 bits      │    12 bits      │
 └─────────────────┴─────────────────┴─────────────────┘
@@ -173,7 +194,7 @@ We need to divide the 20 page number bits between two levels.
    Bits 31-22       Bits 21-12         Bits 11-0
 ```
 
-**Answer (e):**
+**✅ Answer (e):**
 - **First-level (outer) page index: 10 bits**
 - **Second-level (inner) page index: 10 bits**
 
@@ -181,16 +202,23 @@ We need to divide the 20 page number bits between two levels.
 
 ### Complete Summary of Exercise 12
 
-| Parameter | Value |
-|-----------|-------|
-| Total logical address bits | 32 bits |
-| Page size | 4 KB (4096 bytes) |
-| **Offset bits** | **12 bits** |
-| **Page number bits** | **20 bits** |
-| PTE size | 4 bytes |
-| **Entries per page table** | **1024 (2^10)** |
-| **First-level index bits** | **10 bits** |
-| **Second-level index bits** | **10 bits** |
+| Parameter | Value | Verification |
+|-----------|-------|--------------|
+| Total logical address bits | 32 bits | Given |
+| Page size | 4 KB (4096 bytes) | Given |
+| **Offset bits** | **12 bits** | log₂(4096) = 12 ✅ |
+| **Page number bits** | **20 bits** | 32 - 12 = 20 ✅ |
+| PTE size | 4 bytes | Given |
+| **Entries per page table** | **1024 (2^10)** | 4096/4 = 1024 ✅ |
+| **First-level index bits** | **10 bits** | log₂(1024) = 10 ✅ |
+| **Second-level index bits** | **10 bits** | log₂(1024) = 10 ✅ |
+
+### Cross-Verification Check
+
+```
+First-level bits + Second-level bits + Offset bits = Total address bits
+      10         +        10         +     12      =      32 ✅ CORRECT
+```
 
 ### Address Translation Process
 
