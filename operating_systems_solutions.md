@@ -5,120 +5,140 @@
 ### Problem Statement
 For each of the given resource allocation graphs, determine whether a deadlock can exist or not. If a deadlock exists, explain how it can be prevented.
 
-### Solution Methodology
+---
 
-#### Understanding Resource Allocation Graphs (RAG)
+## Graph 1 Analysis (Left Graph)
 
-A Resource Allocation Graph consists of:
-- **Process nodes** (circles): Represent processes (P1, P2, P3, ...)
-- **Resource nodes** (rectangles): Represent resources (R1, R2, R3, ...)
-- **Request edges** (Process → Resource): Process is requesting a resource
-- **Assignment edges** (Resource → Process): Resource is allocated to a process
+### Resources and Processes:
+- **R1**: 1 instance (single dot)
+- **R2**: 2 instances (two dots)
+- **R3**: 2 instances (two dots)
+- **Processes**: T1, T2, T3, T4
 
-#### Deadlock Detection Rules
+### Current Allocations (Resource → Process):
+| Resource | Allocated To | Instances Used |
+|----------|--------------|----------------|
+| R1 | T1 | 1/1 |
+| R2 | T1, T2 | 2/2 |
+| R3 | T2, T4 | 2/2 |
 
-**For Single-Instance Resources:**
-- A deadlock exists **if and only if** there is a **cycle** in the graph.
+### Current Requests (Process → Resource):
+| Process | Holds | Requests |
+|---------|-------|----------|
+| T1 | R1(1), R2(1) | Nothing |
+| T2 | R2(1), R3(1) | R1 |
+| T3 | Nothing | R1, R2 |
+| T4 | R3(1) | R2 |
 
-**For Multi-Instance Resources:**
-- A cycle is a **necessary but not sufficient** condition for deadlock.
-- Must use the **graph reduction algorithm**:
-  1. Find a process whose resource requests can all be satisfied
-  2. Remove all edges to/from that process (simulate completion)
-  3. Repeat until no more processes can be reduced
-  4. If any processes remain, a deadlock exists
+### Graph Reduction Algorithm:
 
-#### General Analysis Pattern
+**Step 1:** Find a process that can complete (all requests satisfiable)
+- T1 holds R1 and R2, requests **nothing** → **T1 CAN COMPLETE**
 
-**Graph Analysis Steps:**
-1. Identify all processes and resources
-2. Trace all request and assignment edges
-3. Look for cycles in the graph
-4. For multi-instance resources, apply the reduction algorithm
+**Step 2:** T1 completes and releases resources
+- R1: 1 instance now **FREE**
+- R2: 1 instance now **FREE**
 
-#### Common Deadlock Scenarios
+**Step 3:** Check remaining processes
+- T2 wants R1 → R1 is now available → **T2 CAN COMPLETE**
+- T2 releases: R2(1), R3(1)
 
-**Scenario A: Simple Cycle (Deadlock EXISTS)**
+**Step 4:** After T2 completes
+- R1: 1 instance FREE
+- R2: 2 instances FREE
+- R3: 1 instance FREE
+
+**Step 5:** T3 wants R1 and R2 → Both available → **T3 CAN COMPLETE**
+
+**Step 6:** T4 wants R2 → Available → **T4 CAN COMPLETE**
+
+### Result for Graph 1: ✅ NO DEADLOCK
+
+**Explanation:** The graph can be fully reduced. All processes can eventually complete because T1 is not waiting for any resource and can release R1 and R2, which allows other processes to proceed.
+
+---
+
+## Graph 2 Analysis (Right Graph)
+
+### Resources and Processes:
+- **R1**: 2 instances (two dots)
+- **R2**: 2 instances (two dots)
+- **Processes**: T1, T2, T3
+
+### Current Allocations (Resource → Process):
+| Resource | Allocated To | Instances Used | Available |
+|----------|--------------|----------------|-----------|
+| R1 | T1, T2 | 2/2 | **0** |
+| R2 | T2, T3 | 2/2 | **0** |
+
+### Current Requests (Process → Resource):
+| Process | Holds | Requests | Status |
+|---------|-------|----------|--------|
+| T1 | R1(1) | R2 | ❌ BLOCKED (R2 has 0 available) |
+| T2 | R1(1), R2(1) | R2 | ❌ BLOCKED (R2 has 0 available) |
+| T3 | R2(1) | R1 | ❌ BLOCKED (R1 has 0 available) |
+
+### Graph Reduction Algorithm:
+
+**Step 1:** Find a process that can complete
+- T1 wants R2 → 0 available → **BLOCKED**
+- T2 wants R2 → 0 available → **BLOCKED**
+- T3 wants R1 → 0 available → **BLOCKED**
+
+**All processes are blocked! No process can proceed.**
+
+### Cycle Detection:
+
 ```
-P1 → R1 → P2 → R2 → P1
+T1 ──wants──→ R2 ──held by──→ T3 ──wants──→ R1 ──held by──→ T1
+     │                                                        ↑
+     └────────────────── CYCLE ──────────────────────────────┘
 ```
-- P1 holds R2, wants R1
-- P2 holds R1, wants R2
-- **Result: DEADLOCK** - circular wait condition
 
-**Scenario B: Cycle with Available Resources (NO Deadlock)**
-```
-P1 → R1 (has 2 instances, 1 allocated to P2, 1 free)
-P2 → R2 → P1
-```
-- Even though there's a cycle, P1 can get R1 (free instance available)
-- After P1 finishes, R2 is released for P2
-- **Result: NO DEADLOCK**
+**Cycle:** T1 → R2 → T3 → R1 → T1
 
-**Scenario C: Multiple Cycles (Deadlock EXISTS)**
-```
-P1 → R1 → P2 → R2 → P3 → R3 → P1
-```
-- Circular chain of waiting
-- **Result: DEADLOCK**
+### Result for Graph 2: ❌ DEADLOCK EXISTS
 
-### Deadlock Prevention Strategies
+**Explanation:** 
+- T1 holds R1 and waits for R2
+- T3 holds R2 and waits for R1
+- This creates a circular wait condition
+- T2 is also involved, holding both R1 and R2 but waiting for another R2 instance
 
-If a deadlock exists, it can be prevented using one of these methods:
+---
 
-#### 1. **Mutual Exclusion Prevention**
-- Make resources shareable where possible
-- Not always feasible (e.g., printers, files being written)
+## Deadlock Prevention Strategies for Graph 2
 
-#### 2. **Hold and Wait Prevention**
-- Require processes to request all resources at once before execution
-- Or require a process to release all resources before requesting new ones
-- **Implementation**: Process must declare all needed resources upfront
+### Method 1: Resource Ordering (Circular Wait Prevention)
+- Assign order: R1 < R2
+- **Rule:** Processes must request R1 before requesting R2
+- T3 violates this rule (holds R2, wants R1)
+- **Fix:** T3 should request R1 first, then R2
 
-#### 3. **No Preemption Prevention**
-- If a process holding resources requests another that cannot be allocated:
-  - Release all currently held resources
-  - Process restarts and re-requests all resources
-- **Implementation**: Allow OS to preempt resources from waiting processes
+### Method 2: Hold and Wait Prevention
+- Require each process to request ALL needed resources at once
+- T1 should request R1 and R2 together atomically
+- T3 should request R1 and R2 together atomically
 
-#### 4. **Circular Wait Prevention** (Most Practical)
-- Impose a total ordering on all resource types
-- Require processes to request resources in increasing order
-- **Implementation**: Number all resources R1 < R2 < R3 < ...
-  - A process holding Ri can only request Rj where j > i
+### Method 3: No Preemption
+- If T1 cannot get R2, it must release R1
+- If T3 cannot get R1, it must release R2
+- OS can preempt resources from waiting processes
 
-### Example Solutions for Typical Graph Patterns
+### Method 4: Deadlock Avoidance (Banker's Algorithm)
+- Before allocating, check if the system remains in a safe state
+- Deny requests that would lead to unsafe states
 
-**Pattern 1: Two processes, two resources (Classic Deadlock)**
-```
-    R1          R2
-    ↓           ↓
-    P1 ←───── P2
-    │           ↑
-    └───────────┘
-```
-- **Analysis**: P1 holds R1, wants R2. P2 holds R2, wants R1.
-- **Verdict**: DEADLOCK EXISTS
-- **Prevention**: 
-  - Require both processes to request R1 before R2 (resource ordering)
-  - Or require processes to request both resources atomically
+---
 
-**Pattern 2: Three processes, three resources (Chain)**
-```
-P1 → R1 → P2 → R2 → P3 → R3 → P1
-```
-- **Analysis**: Circular chain of dependencies
-- **Verdict**: DEADLOCK EXISTS
-- **Prevention**: Break the circular wait by enforcing resource ordering
+## Summary for Exercise 11
 
-**Pattern 3: Fork structure (No Deadlock)**
-```
-    P1 → R1 ← P2
-         ↓
-        P3
-```
-- **Analysis**: No cycle, just competition for R1
-- **Verdict**: NO DEADLOCK (one process will wait, but eventually get R1)
+| Graph | Resources | Processes | Deadlock? | Reason |
+|-------|-----------|-----------|-----------|--------|
+| Graph 1 | R1(1), R2(2), R3(2) | T1, T2, T3, T4 | **NO** | T1 can complete first, releasing resources |
+| Graph 2 | R1(2), R2(2) | T1, T2, T3 | **YES** | Circular wait: T1→R2→T3→R1→T1 |
+
+---
 
 ---
 
